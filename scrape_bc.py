@@ -26,10 +26,12 @@ class ScrapeSession():
         self.total = 0
 
         if not os.path.exists(dl_dir): os.mkdir(dl_dir)
-        self.dl_dir_content = set(os.listdir(dl_dir))
 
         self.tmp_album_art_file = 'art.jpeg'    # for song_art
         self.song_url_pattern = r'https:\/\/t4.bcbits.com\/stream\/.*?token\=\w+'
+
+    @property
+    def dl_dir_content(self): return set(os.listdir(self.dl_dir))
 
     def __str__(self):
         return json.dumps({
