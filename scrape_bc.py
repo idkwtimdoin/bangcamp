@@ -27,7 +27,9 @@ class ScrapeSession():
 
         if not os.path.exists(dl_dir): os.mkdir(dl_dir)
 
-        self.tmp_album_art_file = 'art.jpeg'    # for song_art
+        self.art_dir = f'{dl_dir}/art'
+        if not os.path.exists(self.art_dir): os.mkdir(self.art_dir)
+
         self.song_url_pattern = r'https:\/\/t4.bcbits.com\/stream\/.*?token\=\w+'
 
     @property
@@ -89,7 +91,7 @@ def get_the_juice(tag: bs4.element.Tag, scrape_sess: ScrapeSession) -> None:
     artist_name = soup.find_all(id='name-section')[0].contents[3].contents[3].contents[1].contents[0]
 
     song_art_url = soup.find_all(id='tralbumArt')[0].contents[1].contents[1].attrs['src']
-    cover_art_path = f'{scrape_sess.dl_dir}/{scrape_sess.tmp_album_art_file}'
+    cover_art_path = f'{scrape_sess.art_dir}/{filename}.png'
     urllib.request.urlretrieve(song_art_url, cover_art_path)
 
     song = eyed3.load(path=song_path)
@@ -103,12 +105,6 @@ def get_the_juice(tag: bs4.element.Tag, scrape_sess: ScrapeSession) -> None:
         song.tag.images.set(3, cover_art.read(), 'image/jpeg')
 
     song.tag.save()
-
-
-def clean_up(scrape_sess: ScrapeSession) -> None:
-    try:
-        os.remove(f'{scrape_sess.dl_dir}/{scrape_sess.tmp_album_art_file}')
-    except FileNotFoundError: pass
 
 
 @click.command()
@@ -137,16 +133,12 @@ def main(url, dest):
     scrape_sess = ScrapeSession(domain_url, dest)
     scrape_sess.total = len(song_containers)
 
-    print(f'{str(" begin "):*^80}')
+    print(f'{str(f" {scrape_sess.total} songs found "):*^80}')
     for i, cont in enumerate(song_containers):
         try:
             get_the_juice(cont, scrape_sess)
         except CantGetTheJuice as err:
             print(err)
-
-    # cleanup
-    print(f'{str(" cleaning up "):*^80}')
-    clean_up(scrape_sess)
 
     print(f'{str(" summary "):*^80}')
     print(scrape_sess)
