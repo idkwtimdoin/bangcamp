@@ -1,1 +1,6 @@
 downloads/
+.venv
+.env
+stuff.txt
+*.pyc
+__pycache__
