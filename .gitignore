@@ -4,3 +4,5 @@ downloads/
 stuff.txt
 *.pyc
 __pycache__
+.vscode
+lab.ipynb
