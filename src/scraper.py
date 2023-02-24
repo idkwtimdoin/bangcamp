@@ -110,32 +110,33 @@ async def dl_track(track_url: str, sess: ScrapeSession) -> None:
         log.success(f'{song_name:.<80} +++ done')
         sess.downloads.append(song_name)
 
-    # # * get song meta
-    # album_name = soup.find_all(id='name-section')[0].find_all('a')[0].contents[0].contents[0]
-    # artist_name = soup.find_all(id='name-section')[0].contents[3].contents[3].contents[1].contents[0]
+    # * get song meta
+    album_name = soup.find(id='name-section').find('a').contents[0].contents[0]
+    artist_name = soup.find(id='name-section').contents[3].contents[3].contents[1].contents[0]
 
-    # song_art_url = soup.find_all(id='tralbumArt')[0].contents[1].contents[1].attrs['src']
-    # cover_art_path = f'{sess.art_dir}/{filename}.png'
-    # urllib.request.urlretrieve(song_art_url, cover_art_path)
+    song_art_url = soup.find(id='tralbumArt').contents[1].contents[1].attrs['src']
+    cover_art_path = f'{sess.art_dir}/{filename}.png'
+    urllib.request.urlretrieve(song_art_url, cover_art_path)
 
-    # song = eyed3.load(path=song_path)
-    # song.initTag()
+    song = eyed3.load(path=song_path)
+    song.initTag()
 
-    # song.tag.album = album_name
-    # song.tag.artist = artist_name
-    # song.tag.title = song_name
+    song.tag.album = album_name
+    song.tag.artist = artist_name
+    song.tag.title = song_name
 
-    # with open(cover_art_path, 'rb') as cover_art:
-    #     song.tag.images.set(3, cover_art.read(), 'image/jpeg')
+    with open(cover_art_path, 'rb') as cover_art:
+        song.tag.images.set(3, cover_art.read(), 'image/jpeg')
 
-    # song.tag.save()
+    song.tag.save()
 
 
 async def consumer(sess: ScrapeSession):
     while True:
         track_url = await sess.queue.get()
 
-        try: await dl_track(track_url, sess)
+        try:
+            await dl_track(track_url, sess)
         except CantGetTheJuice as err:
             log.error(err)
         finally:
@@ -166,10 +167,10 @@ async def get_all_the_juice(urls: list[str], dest: str, workers: int) -> None:
     producers = [asyncio.create_task(producer(sess)) for _ in range(workers)]
     consumers = [asyncio.create_task(consumer(sess)) for _ in range(workers)]
 
-    await asyncio.gather(*producers)
-    await sess.queue.join()
+    # await asyncio.gather(*producers, *consumers)
+    # await sess.queue.join()
 
-    for c in consumers: c.cancel()
+    # for c in consumers: c.cancel()
 
     log.notice(f'{str(" SUMMARY "):*^80}')
     log.notice(sess)
@@ -179,4 +180,3 @@ def dl(urls: list[str], dest: str, workers: int) -> None:
     pretend_to_be_browser()
 
     asyncio.run(get_all_the_juice(urls, dest, workers))
-
