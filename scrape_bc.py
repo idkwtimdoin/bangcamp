@@ -16,14 +16,14 @@ def pretend_to_be_browser():
 
 
 class ScrapeSession():
-    def __init__(self, domain_url: str, dl_dir: str):
+    def __init__(self, domain_url: str, dl_dir: str, items_total: int = 0):
         self.domain_url = domain_url
         self.problems = []      # things that were not downloaded
         self.downloads = []     # things that were not not downloaded
         self.already_here = []  # things that were already downloaded
         self.dl_dir = dl_dir
 
-        self.total = 0
+        self.total = items_total
 
         if not os.path.exists(dl_dir): os.mkdir(dl_dir)
 
@@ -130,8 +130,7 @@ def main(url, dest):
     # bypass 403 http error
     pretend_to_be_browser()
 
-    scrape_sess = ScrapeSession(domain_url, dest)
-    scrape_sess.total = len(song_containers)
+    scrape_sess = ScrapeSession(domain_url, dest, items_total=len(song_containers))
 
     print(f'{str(f" {scrape_sess.total} songs found "):*^80}')
     for i, cont in enumerate(song_containers):
